@@ -1,9 +1,10 @@
-use crate::deepsafe::runtime_types::ethereum::transaction::{
+use crate::node::runtime_types::ethereum::transaction::{
     EIP1559Transaction, TransactionAction, TransactionV2 as EvmTransaction,
 };
+use crate::{Secp256k1Signer, SecretKey};
 use anyhow::Result;
 use codec::{Compact, Encode};
-use def_node_primitives::AccountId20;
+use node_primitives::AccountId20;
 use sp_core::H256 as Hash;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,20 +18,20 @@ use subxt::tx::{Signer, SubmittableExtrinsic};
 use subxt::{
     error::RpcError,
     storage::{address::Yes, StorageAddress, StorageKey},
-    tx::{DeepSafeSigner, SecretKey, TxPayload, TxProgress},
+    tx::{TxPayload, TxProgress},
     Config, Error, JsonRpseeError, OnlineClient,
 };
 use tokio::sync::RwLock;
 
 #[derive(Clone, Debug)]
-pub enum DeepSafeConfig {}
+pub enum NodeConfig {}
 
-impl Config for DeepSafeConfig {
+impl Config for NodeConfig {
     type Index = u32;
-    type Hash = Hash;
-    type AccountId = def_node_primitives::AccountId20;
-    type Address = sp_runtime::MultiAddress<def_node_primitives::AccountId20, ()>;
-    type Signature = def_node_primitives::EthereumSignature;
+    type Hash = sp_core::H256;
+    type AccountId = AccountId20;
+    type Address = sp_runtime::MultiAddress<AccountId20, ()>;
+    type Signature = node_primitives::EthereumSignature;
     type Hasher = BlakeTwo256;
     type Header = SubstrateHeader<u32, BlakeTwo256>;
     type ExtrinsicParams = PolkadotExtrinsicParams<Self>;
@@ -44,38 +45,38 @@ pub struct SubClient<C: Config, P: Signer<C> + Clone> {
     pub inner_nonce: Arc<RwLock<u32>>,
     // number of cache, will re-submit call if 'call_cache' length up to it.
     pub cache_size_for_call: u32,
-    // call cache with target nonce, ture value for 'bool' param means the tx is submitted by evm, 'Vec<u8>' is input for evm tx, 'u128' is tx tip for priority.
+    // call cache with target nonce, ture value for 'node' param means the tx is submitted by evm, 'Vec<u8>' is input for evm tx, 'u128' is tx tip for priority.
     pub call_cache:
         Arc<RwLock<HashMap<u32, (Box<dyn TxPayload + Send + Sync>, bool, Vec<u8>, u128)>>>,
-    // milliseconds, default 10000 milllis(10 seconds)
+    // milliseconds, default 10000 millis(10 seconds)
     pub warn_time: u128,
 }
 
-impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
+impl SubClient<NodeConfig, Secp256k1Signer<NodeConfig>> {
     pub async fn new(
         url: &str,
         id: &str,
         password_override: Option<String>,
         warn_time: Option<u128>,
         cache_size_for_call: Option<u32>,
-    ) -> SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
+    ) -> SubClient<NodeConfig, Secp256k1Signer<NodeConfig>> {
         let password_override = password_override.unwrap_or("".to_string());
         let phase = id.to_owned() + &password_override;
         let seed = sp_core::keccak_256(phase.as_bytes());
-        let signer = DeepSafeSigner::new(
+        let signer = Secp256k1Signer::new(
             SecretKey::parse(&seed).expect("phase sk from seed should successfully"),
         );
-        let subxt_client = OnlineClient::<DeepSafeConfig>::from_url(url).await.unwrap();
+        let subxt_client = OnlineClient::<NodeConfig>::from_url(url).await.unwrap();
         let chain_nonce = subxt_client
             .tx()
             .account_nonce(signer.account_id())
             .await
-            .unwrap();
+            .unwrap() as u32;
         SubClient {
             ws_url: url.to_string(),
             signer: Some(signer),
             client: Arc::new(RwLock::new(subxt_client)),
-            inner_nonce: Arc::new(RwLock::new(chain_nonce as u32)),
+            inner_nonce: Arc::new(RwLock::new(chain_nonce)),
             cache_size_for_call: cache_size_for_call.unwrap_or(10),
             call_cache: Arc::new(RwLock::new(HashMap::new())),
             warn_time: warn_time.unwrap_or(10000),
@@ -87,21 +88,21 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
         sk: Option<String>,
         warn_time: Option<u128>,
         cache_size_for_call: Option<u32>,
-    ) -> Result<SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>>, String> {
+    ) -> Result<SubClient<NodeConfig, Secp256k1Signer<NodeConfig>>, String> {
         let mut chain_nonce = 0;
-        let subxt_client = OnlineClient::<DeepSafeConfig>::from_url(&url)
+        let subxt_client = OnlineClient::<NodeConfig>::from_url(&url)
             .await
             .map_err(|e| e.to_string())?;
         let signer = if let Some(sk) = sk {
             let sk =
                 hex::decode(sk.strip_prefix("0x").unwrap_or(&sk)).map_err(|e| e.to_string())?;
             let signer =
-                DeepSafeSigner::new(SecretKey::parse_slice(&sk).map_err(|e| e.to_string())?);
+                Secp256k1Signer::new(SecretKey::parse_slice(&sk).map_err(|e| e.to_string())?);
             chain_nonce = subxt_client
                 .tx()
                 .account_nonce(signer.account_id())
                 .await
-                .unwrap();
+                .unwrap() as u32;
             Some(signer)
         } else {
             None
@@ -110,7 +111,7 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
             ws_url: url,
             signer,
             client: Arc::new(RwLock::new(subxt_client)),
-            inner_nonce: Arc::new(RwLock::new(chain_nonce as u32)),
+            inner_nonce: Arc::new(RwLock::new(chain_nonce)),
             cache_size_for_call: cache_size_for_call.unwrap_or(10),
             call_cache: Arc::new(RwLock::new(HashMap::new())),
             warn_time: warn_time.unwrap_or(10000),
@@ -178,13 +179,9 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
                 *inner_nonce
             }
         };
-        let tx: subxt::tx::SubmittableExtrinsic<DeepSafeConfig, OnlineClient<DeepSafeConfig>> =
-            client.tx().create_signed_with_nonce(
-                &call,
-                signer,
-                target_nonce,
-                Default::default(),
-            )?;
+        let tx: subxt::tx::SubmittableExtrinsic<NodeConfig, OnlineClient<NodeConfig>> = client
+            .tx()
+            .create_signed_with_nonce(&call, signer, target_nonce, Default::default())?;
         let tx_hash = match tx.submit_and_watch().await?.wait_for_in_block().await {
             Ok(tx) => {
                 log::debug!(target: "subxt::nonce", "inner_nonce {}, insert cache for nonce: {}", target_nonce + 1, target_nonce);
@@ -207,7 +204,7 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
         &self,
         call: Call,
         nonce: Option<u32>,
-    ) -> Result<Hash, Error> {
+    ) -> Result<<NodeConfig as Config>::Hash, Error> {
         let call = Box::new(call);
         let timer = Instant::now();
         self.check_client_runtime_version_and_update().await?;
@@ -254,7 +251,7 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
                                 let evm_tx = self
                                     .build_eip1559_tx_to_v2(eip1995_tx)
                                     .map_err(|e| Error::Other(e))?;
-                                let evm_call = crate::deepsafe::tx().ethereum().transact(evm_tx);
+                                let evm_call = crate::node::tx().ethereum().transact(evm_tx);
                                 client.tx().create_unsigned(&evm_call)?
                             } else {
                                 client.tx().create_signed_with_nonce(
@@ -345,7 +342,7 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
                                 let evm_tx = self
                                     .build_eip1559_tx_to_v2(eip1995_tx)
                                     .map_err(|e| Error::Other(e))?;
-                                let evm_call = crate::deepsafe::tx().ethereum().transact(evm_tx);
+                                let evm_call = crate::node::tx().ethereum().transact(evm_tx);
                                 client.tx().create_unsigned(&evm_call)?
                             } else {
                                 client.tx().create_signed_with_nonce(
@@ -445,7 +442,7 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
     pub async fn submit_extrinsic_without_signer_and_watch<Call: TxPayload>(
         &self,
         call: Call,
-    ) -> Result<TxProgress<DeepSafeConfig, OnlineClient<DeepSafeConfig>>, Error> {
+    ) -> Result<TxProgress<NodeConfig, OnlineClient<NodeConfig>>, Error> {
         let timer = Instant::now();
         let client = self.client.read().await;
         let tx = client.tx().create_unsigned(&call)?;
@@ -578,7 +575,7 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
         let res = self
             .signer
             .as_ref()
-            .expect("DeepSafe subclient should has account")
+            .expect("subclient should has account")
             .account_id()
             .clone();
         if timer.elapsed().as_millis() > self.warn_time {
@@ -595,11 +592,11 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
         let sk = self
             .signer
             .clone()
-            .ok_or("Not set deepsafe client signer")?
+            .ok_or("Not set node client signer")?
             .signer()
             .serialize();
         let secret = secp256k1::SecretKey::parse(&sk)
-            .map_err(|e| format!("Parse deepsafe signer sk failed for: {:?}", e))?;
+            .map_err(|e| format!("Parse node signer sk failed for: {:?}", e))?;
         let signing_message =
             secp256k1::Message::parse_slice(&tx.hash()[..]).map_err(|e| e.to_string())?;
         let (signature, recid) = secp256k1::sign(&signing_message, &secret);
@@ -608,19 +605,19 @@ impl SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>> {
         let s = Hash::from_slice(&rs[32..64]);
         Ok(EvmTransaction::EIP1559(EIP1559Transaction {
             chain_id: tx.chain_id,
-            nonce: crate::deepsafe::runtime_types::primitive_types::U256(tx.nonce.0),
-            max_priority_fee_per_gas: crate::deepsafe::runtime_types::primitive_types::U256(
+            nonce: crate::node::runtime_types::primitive_types::U256(tx.nonce.0),
+            max_priority_fee_per_gas: crate::node::runtime_types::primitive_types::U256(
                 tx.max_priority_fee_per_gas.0,
             ),
-            max_fee_per_gas: crate::deepsafe::runtime_types::primitive_types::U256(
+            max_fee_per_gas: crate::node::runtime_types::primitive_types::U256(
                 tx.max_fee_per_gas.0,
             ),
-            gas_limit: crate::deepsafe::runtime_types::primitive_types::U256(tx.gas_limit.0),
+            gas_limit: crate::node::runtime_types::primitive_types::U256(tx.gas_limit.0),
             action: match tx.action {
                 ethereum::TransactionAction::Call(addr) => TransactionAction::Call(addr),
                 _ => return Err(format!("Invalid evm tx action: {:?}", tx.action)),
             },
-            value: crate::deepsafe::runtime_types::primitive_types::U256(tx.value.0),
+            value: crate::node::runtime_types::primitive_types::U256(tx.value.0),
             input: tx.input,
             access_list: vec![],
             odd_y_parity: recid.serialize() != 0,
@@ -738,6 +735,8 @@ pub fn default_port(scheme: &str) -> Option<u16> {
 
 #[tokio::test]
 async fn test_rebuild_client() {
+    use crate::NodeRpc;
+
     let url = "ws://127.0.0.1:9944".to_string();
     let sk = "5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133".to_string();
     let client = SubClient::new_from_ecdsa_sk(url, Some(sk), None, None)
@@ -745,9 +744,7 @@ async fn test_rebuild_client() {
         .unwrap();
     loop {
         println!("try to query challenges");
-        let res = crate::query::mining::challenges(&client, 1, None)
-            .await
-            .unwrap();
+        let res = client.query().mining().challenges(1, None).await.unwrap();
         println!("query challenges result: {:?}", res);
         std::thread::sleep(std::time::Duration::from_secs(2));
     }
@@ -755,11 +752,16 @@ async fn test_rebuild_client() {
 
 #[tokio::test]
 async fn test_query_iter() {
-    let url = "ws://127.0.0.1:9944".to_string();
+    use crate::NodeRpc;
+
+    let url = "wss://test-rpc-node-ws.node.network".to_string();
     let client = crate::client::SubClient::new_from_signer(&url, None, None, None)
         .await
         .unwrap();
-    let res = crate::query::committee::committees_iter(&client, 300, None)
+    let res = client
+        .query()
+        .committee()
+        .committees_iter(300, None)
         .await
         .unwrap();
     println!("res: {res:?}");
@@ -767,13 +769,18 @@ async fn test_query_iter() {
 
 #[tokio::test]
 async fn test_query_cmt() {
-    let url = "ws://127.0.0.1:9944".to_string();
+    use crate::NodeRpc;
+
+    let url = "wss://test-rpc-node-ws.node.network".to_string();
     let client = crate::client::SubClient::new_from_signer(&url, None, None, None)
         .await
         .unwrap();
 
     for i in 1u32..426 {
-        let res = crate::query::committee::committees(&client, i, None)
+        let res = client
+            .query()
+            .committee()
+            .committees(i, None)
             .await
             .unwrap();
         println!("res: {res:?}");
@@ -781,25 +788,50 @@ async fn test_query_cmt() {
 }
 
 #[tokio::test]
+async fn test_query_btc_committee_type_iter() {
+    use crate::NodeRpc;
+
+    let url = "ws://127.0.0.1:9933".to_string();
+    let client = crate::client::SubClient::new_from_signer(&url, None, None, None)
+        .await
+        .unwrap();
+    let res = client
+        .query()
+        .channel()
+        .btc_committee_type_iter(300, None)
+        .await
+        .unwrap();
+    println!("res: {res:?}");
+    let res = client
+        .query()
+        .channel()
+        .channel_mapping_tick_iter(300, None)
+        .await
+        .unwrap();
+    println!("res: {res:?}");
+    println!("hex: {:?}", hex::encode([240, 159, 165, 154]));
+}
+
+#[tokio::test]
 async fn test_nonce_roll_back() {
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
-    use crate::DeepSafeSubClient;
+    use crate::NodeClient;
     use std::str::FromStr;
 
     let url = "ws://127.0.0.1:9933".to_string();
     let sk_bytes = hex::decode("").unwrap();
     let sk = SecretKey::parse_slice(&sk_bytes).unwrap();
-    let signer = DeepSafeSigner::new(sk);
-    let client = DeepSafeSubClient::new_from_signer(&url, Some(signer), None, Some(20))
+    let signer = Secp256k1Signer::new(sk);
+    let client = NodeClient::new_from_signer(&url, Some(signer), None, Some(20))
         .await
         .unwrap();
     let account = AccountId20::from_str("0x89Bdaf4AC10bC9d497BCa9a5cc37972026146E0E").unwrap();
-    let dst = crate::deepsafe::runtime_types::fp_account::AccountId20(account.0);
+    let dst = crate::node::runtime_types::fp_account::AccountId20(account.0);
 
     for i in 0..200 {
         log::info!("index: {i}");
-        let call = crate::deepsafe::tx()
+        let call = crate::node::tx()
             .balances()
             .transfer_keep_alive(dst.clone().into(), 100000);
         let res = client
@@ -814,20 +846,20 @@ async fn test_nonce_roll_back() {
 async fn test_submit_tx_by_call_bytes() {
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
-    use crate::DeepSafeSubClient;
+    use crate::NodeClient;
     use std::str::FromStr;
 
     let url = "ws://127.0.0.1:9944".to_string();
     let sk_bytes =
         hex::decode("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133").unwrap(); // alice
     let sk = SecretKey::parse_slice(&sk_bytes).unwrap();
-    let signer = DeepSafeSigner::new(sk);
-    let client = DeepSafeSubClient::new_from_signer(&url, Some(signer), None, Some(20))
+    let signer = Secp256k1Signer::new(sk);
+    let client = NodeClient::new_from_signer(&url, Some(signer), None, Some(20))
         .await
         .unwrap();
     let account = AccountId20::from_str("0x89Bdaf4AC10bC9d497BCa9a5cc37972026146E0E").unwrap();
-    let dst = crate::deepsafe::runtime_types::fp_account::AccountId20(account.0);
-    let call = crate::deepsafe::tx()
+    let dst = crate::node::runtime_types::fp_account::AccountId20(account.0);
+    let call = crate::node::tx()
         .balances()
         .transfer_keep_alive(dst.clone().into(), 100000);
     let call_bytes = client.signed_tx_encode_to_bytes(call, None).await.unwrap();

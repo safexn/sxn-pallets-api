@@ -1,40 +1,56 @@
-#![deny(unused_crate_dependencies)]
 pub mod client;
 pub mod event_watcher;
 pub mod monitor_rpc;
 pub mod query;
+pub mod signer;
 pub mod submit;
 pub mod types;
 pub mod watcher_rpc;
 
-pub use crate::client::DeepSafeConfig;
-pub use def_node_primitives;
-use def_node_primitives::CustomError;
+pub use crate::client::NodeConfig;
+pub use node_primitives;
+use node_primitives::CustomError;
+pub use signer::{Secp256k1Signer, SecretKey};
 pub use subxt::constants::Address;
 pub use subxt::events::StaticEvent;
-pub use subxt::tx::{DeepSafeSigner, SecretKey};
 pub use subxt::{
     config::extrinsic_params::BaseExtrinsicParamsBuilder, error::RpcError, events::EventDetails,
     subxt, Error, JsonRpseeError,
 };
 
-/// use subxt cli to update metadata 'subxt metadata --url http://127.0.0.1:9944 --version 14 -f bytes > metadata.scale'
+/// use subxt cli to update metadata 'subxt metadata --url http://127.0.0.1:9933 --version 14 -f bytes > metadata.scale'
 #[subxt::subxt(
     runtime_metadata_path = "./metadata.scale",
     derive_for_all_types = "Eq, PartialEq, Clone, Debug"
 )]
-pub mod deepsafe {}
+pub mod node {}
 
-pub type DeepSafeSubClient = client::SubClient<DeepSafeConfig, DeepSafeSigner<DeepSafeConfig>>;
+pub type NodeClient = client::SubClient<NodeConfig, Secp256k1Signer<NodeConfig>>;
+
+pub trait NodeRpc {
+    fn query(&self) -> query::Query;
+    fn submit(&self) -> submit::Submit;
+}
+
+impl NodeRpc for NodeClient {
+    fn query(&self) -> query::Query {
+        query::Query { client: self }
+    }
+
+    fn submit(&self) -> submit::Submit {
+        submit::Submit { client: self }
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub enum CommitteeEvent {
     CreateCommittee,
     CommitteeCreateFinished,
+    CommitteeStartWork,
     ApplyEpochChange,
     BindAnchor,
-    CommitteeStartWork,
     StopCommittee,
+    RefreshAssets,
     UpdateConfigs,
     KeyGenerate,
     KeyHandover,
@@ -51,6 +67,7 @@ impl CommitteeEvent {
             "BindAnchor".into(),
             "CommitteeStartWork".into(),
             "StopCommittee".into(),
+            "RefreshAssets".into(),
             "UpdateConfigs".into(),
             "KeyGenerate".into(),
             "KeyHandover".into(),
@@ -64,7 +81,6 @@ pub enum CommitteeHealthEvent {
     Challenges,
     HealthReport,
     ConfirmDHCState,
-    PunishEvilDevice,
     Unknown,
 }
 
@@ -74,7 +90,6 @@ impl CommitteeHealthEvent {
             "Challenges".into(),
             "HealthReport".into(),
             "ConfirmDHCState".into(),
-            "PunishEvilDevice".into(),
         ]
     }
 }
@@ -92,23 +107,12 @@ impl ConfigsEvent {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum RpcEvent {
-    DeviceRegistered,
-    Unknown,
-}
-
-impl RpcEvent {
-    pub fn event_names() -> Vec<String> {
-        vec!["DeviceRegistered".into()]
-    }
-}
-
-#[derive(Debug, PartialEq)]
 pub enum ChannelEvent {
     NewTransaction,
     SubmitTransactionSignResult,
     Connection,
     NewSourceHash,
+    CreateNewTx,
     RefreshInscription,
     SignRefresh,
     SubmitRefresh,
@@ -136,8 +140,8 @@ impl ChannelEvent {
             "SubmitTransactionSignResult".into(),
             "Connection".into(),
             "NewSourceHash".into(),
+            "CreateNewTx".into(),
             "RefreshInscription".into(),
-            "SignRefresh".into(),
             "SubmitRefresh".into(),
             "RequestNewIssueXudt".into(),
             "SignIssueXudt".into(),
@@ -199,6 +203,18 @@ impl CommitteeAssetsEvent {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub enum RpcEvent {
+    DeviceRegistered,
+    Unknown,
+}
+
+impl RpcEvent {
+    pub fn event_names() -> Vec<String> {
+        vec!["DeviceRegistered".into()]
+    }
+}
+
 impl std::str::FromStr for CommitteeEvent {
     type Err = ();
     fn from_str(input: &str) -> Result<CommitteeEvent, Self::Err> {
@@ -235,7 +251,6 @@ impl std::str::FromStr for CommitteeHealthEvent {
             "Challenges" => Ok(CommitteeHealthEvent::Challenges),
             "HealthReport" => Ok(CommitteeHealthEvent::HealthReport),
             "ConfirmDHCState" => Ok(CommitteeHealthEvent::ConfirmDHCState),
-            "PunishEvilDevice" => Ok(CommitteeHealthEvent::PunishEvilDevice),
             _ => Ok(CommitteeHealthEvent::Unknown),
         }
     }
@@ -259,6 +274,7 @@ impl std::str::FromStr for ChannelEvent {
             "SubmitTransactionSignResult" => Ok(ChannelEvent::SubmitTransactionSignResult),
             "Connection" => Ok(ChannelEvent::Connection),
             "NewSourceHash" => Ok(ChannelEvent::NewSourceHash),
+            "CreateNewTx" => Ok(ChannelEvent::CreateNewTx),
             "RefreshInscription" => Ok(ChannelEvent::RefreshInscription),
             "SignRefresh" => Ok(ChannelEvent::SignRefresh),
             "SubmitRefresh" => Ok(ChannelEvent::SubmitRefresh),

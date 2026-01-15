@@ -1,10 +1,12 @@
-use crate::DeepSafeSubClient;
 use sp_core::H256 as Hash;
 
-pub async fn now(
-    sub_client: &DeepSafeSubClient,
-    at_block: Option<Hash>,
-) -> Result<Option<u64>, subxt::Error> {
-    let storage_query = crate::deepsafe::storage().timestamp().now();
-    sub_client.query_storage(storage_query, at_block).await
+pub struct Timestamp<'a> {
+    pub(crate) client: &'a crate::NodeClient,
+}
+
+impl<'a> Timestamp<'a> {
+    pub async fn now(&self, at_block: Option<Hash>) -> Result<Option<u64>, subxt::Error> {
+        let storage_query = crate::node::storage().timestamp().now();
+        self.client.query_storage(storage_query, at_block).await
+    }
 }

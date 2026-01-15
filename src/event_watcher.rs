@@ -1,6 +1,6 @@
-//! EventWatcher for DeepSafe node witch DeepSafeSubClient.
-use crate::{DeepSafeConfig, DeepSafeSubClient as SubClient};
-use def_node_primitives::Hash;
+//! EventWatcher for Bool node witch BoolSubClient.
+use crate::{NodeClient as SubClient, NodeConfig};
+use node_primitives::Hash;
 use std::{cmp::Ordering, collections::HashMap};
 use subxt::events::EventDetails;
 use subxt::Config;
@@ -26,7 +26,7 @@ pub enum EventFilter {
 pub struct EventWatcher {
     log_target: String,
     client: SubClient,
-    handler: Sender<(WatcherMode, u32, Hash, Vec<EventDetails<DeepSafeConfig>>)>,
+    handler: Sender<(WatcherMode, u32, Hash, Vec<EventDetails<NodeConfig>>)>,
     pub filter: Option<EventFilter>,
     pub latest: u32,
     pub finalized: u32,
@@ -36,7 +36,7 @@ impl EventWatcher {
     pub fn new(
         log_target: &str,
         client: SubClient,
-        handler: Sender<(WatcherMode, u32, Hash, Vec<EventDetails<DeepSafeConfig>>)>,
+        handler: Sender<(WatcherMode, u32, Hash, Vec<EventDetails<NodeConfig>>)>,
     ) -> Self {
         EventWatcher {
             log_target: log_target.to_string(),
@@ -93,7 +93,7 @@ impl EventWatcher {
 
     pub fn run(mut self, mode: WatcherMode) {
         tokio::spawn(async move {
-            log::info!(target: &self.log_target, "Start watching blocks by url: {}......", &self.client.ws_url);
+            log::info!(target: &self.log_target, "Start watching blocks......");
             loop {
                 if matches!(mode, WatcherMode::Latest | WatcherMode::Both) {
                     match get_block_number(self.client.clone(), None).await {
@@ -243,7 +243,7 @@ pub async fn get_events(
     client: &SubClient,
     block: u32,
     filter: Option<EventFilter>,
-) -> anyhow::Result<(Hash, Vec<EventDetails<DeepSafeConfig>>)> {
+) -> anyhow::Result<(Hash, Vec<EventDetails<NodeConfig>>)> {
     let hash = client
         .client
         .read()
@@ -270,9 +270,10 @@ pub async fn get_events(
                             } else {
                                 None
                             }
-                        },
+                        }
                         EventFilter::Events(events) => {
-                            if let Some(event_names) = events.get(&event.pallet_name().to_string()) {
+                            if let Some(event_names) = events.get(&event.pallet_name().to_string())
+                            {
                                 if event_names.contains(&event.variant_name().to_string()) {
                                     Some(event)
                                 } else {
@@ -286,7 +287,7 @@ pub async fn get_events(
                 } else {
                     Some(event)
                 }
-            },
+            }
             Err(e) => {
                 panic!("event decode from metadata failed for: {e:?}");
             }
@@ -298,12 +299,12 @@ pub async fn get_events(
 pub async fn get_block_hash(
     client: SubClient,
     mode: WatcherMode,
-) -> Result<<DeepSafeConfig as Config>::Hash, String> {
+) -> Result<<NodeConfig as Config>::Hash, String> {
     let guard_client = client.client.read().await;
     match mode {
         WatcherMode::Latest => match guard_client.rpc().block_hash(None).await {
-            Ok(Some(hash)) => return Ok(hash),
-            Ok(None) => return Err("get empty lastet block".to_string()),
+            Ok(Some(hash)) => Ok(hash),
+            Ok(None) => Err("get empty lastet block".to_string()),
             Err(e) => {
                 drop(guard_client);
                 log::error!("get latest block failed for : {e:?}, try to rebuild client");
@@ -311,12 +312,12 @@ pub async fn get_block_hash(
                 if let Err(e) = client.handle_error(e).await {
                     return Err(e.to_string());
                 }
-                return Err(err_str);
+                Err(err_str)
             }
         },
         WatcherMode::Finalized => {
             match guard_client.rpc().finalized_head().await {
-                Ok(hash) => return Ok(hash),
+                Ok(hash) => Ok(hash),
                 Err(e) => {
                     drop(guard_client);
                     log::error!("event watcher get finalized block failed for : {e:?}, try to rebuild client");
@@ -324,7 +325,7 @@ pub async fn get_block_hash(
                     if let Err(e) = client.handle_error(e).await {
                         return Err(e.to_string());
                     }
-                    return Err(err_str);
+                    Err(err_str)
                 }
             }
         }
@@ -336,12 +337,12 @@ pub async fn get_block_hash(
 
 pub async fn get_block_number(
     client: SubClient,
-    hash: Option<<DeepSafeConfig as Config>::Hash>,
+    hash: Option<<NodeConfig as Config>::Hash>,
 ) -> Result<u32, String> {
     let guard_client = client.client.read().await;
     match guard_client.rpc().header(hash).await {
-        Ok(Some(header)) => return Ok(header.number),
-        Ok(None) => return Err(format!("subxt client get empty block by hash: {hash:?}")),
+        Ok(Some(header)) => Ok(header.number),
+        Ok(None) => Err(format!("subxt client get empty block by hash: {hash:?}")),
         Err(e) => {
             drop(guard_client);
             log::error!("event watcher get block by hash: {hash:?} failed for: {e:?}, try to rebuild client");
@@ -349,7 +350,7 @@ pub async fn get_block_number(
             if let Err(e) = client.handle_error(e).await {
                 return Err(e.to_string());
             }
-            return Err(err_str);
+            Err(err_str)
         }
     }
 }

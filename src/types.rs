@@ -1,4 +1,4 @@
-use def_chain_bridge::chain::ChainType;
+use chain_bridge::chain::ChainType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]

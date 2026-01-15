@@ -1,18 +1,14 @@
-use crate::deepsafe::runtime_types::pallet_channel::types::TxSource;
-use crate::no_prefix;
-use crate::query::ethereum::evm_chain_id;
-use crate::submit::channel::submit_transaction;
-use crate::submit::channel::{clear_target_package, import_new_src_hash, sync_status};
-use crate::submit::ethereum::transact;
+use crate::node::runtime_types::pallet_channel::types::{TxMessage, TxSource};
 use crate::types::{ExtrinsicData, NeedSignedExtrinsic};
 use crate::watcher_rpc::SUBMIT_TRANSACTION_SELECTOR;
-use crate::DeepSafeSubClient;
+use crate::NodeClient;
+use crate::{no_prefix, NodeRpc};
 use precompile_utils::prelude::UnboundedBytes;
 use precompile_utils::solidity::codec::Writer as EvmDataWriter;
-use sp_core::{Encode, H160, U256};
+use sp_core::{Encode, H160, H256, U256};
 
 pub async fn submit_extrinsic(
-    sub_client: &DeepSafeSubClient,
+    sub_client: &NodeClient,
     extrinsic: NeedSignedExtrinsic,
     need_watch_res: bool,
 ) -> Result<String, String> {
@@ -23,28 +19,30 @@ pub async fn submit_extrinsic(
                 uid: tx.uid,
                 from: tx.from.clone(),
                 to: tx.to,
-                amount: crate::deepsafe::runtime_types::primitive_types::U256(
+                amount: crate::node::runtime_types::primitive_types::U256(
                     U256::from_little_endian(&tx.amount).0,
                 ),
             };
 
-            submit_transaction(
-                sub_client,
-                tx.channel_id,
-                tx.cid,
-                tx.msg,
-                tx_source,
-                need_watch_res,
-                None,
-            )
-            .await
-            .map(|hash| "0x".to_string() + &hex::encode(hash.0))
+            sub_client
+                .submit()
+                .channel()
+                .submit_transaction(
+                    tx.channel_id,
+                    tx.cid,
+                    tx.msg,
+                    tx_source,
+                    need_watch_res,
+                    None,
+                )
+                .await
+                .map(|hash| "0x".to_string() + &hex::encode(hash.0))
         }
     }
 }
 
 pub async fn submit_extrinsic_by_evm(
-    sub_client: &DeepSafeSubClient,
+    sub_client: &NodeClient,
     extrinsic: NeedSignedExtrinsic,
 ) -> Result<String, String> {
     match extrinsic.data {
@@ -63,7 +61,10 @@ pub async fn submit_extrinsic_by_evm(
 
             let input = writer.build();
 
-            let chain_id = evm_chain_id(sub_client, None)
+            let chain_id = sub_client
+                .query()
+                .ethereum()
+                .evm_chain_id(None)
                 .await
                 .map_err(|e| e.to_string())?
                 .ok_or("get evm chain failed".to_string())?;
@@ -112,8 +113,7 @@ pub async fn submit_extrinsic_by_evm(
                                         .max_priority_fee_per_gas
                                         + sp_core::U256::from(*tip + 100u128);
                                     let evm_tx = sub_client.build_eip1559_tx_to_v2(eip1995_tx)?;
-                                    let evm_call =
-                                        crate::deepsafe::tx().ethereum().transact(evm_tx);
+                                    let evm_call = crate::node::tx().ethereum().transact(evm_tx);
                                     client
                                         .tx()
                                         .create_unsigned(&evm_call)
@@ -157,7 +157,12 @@ pub async fn submit_extrinsic_by_evm(
                 s: Default::default(),
             };
             let transaction = sub_client.build_eip1559_tx_to_v2(tx.clone())?;
-            return match transact(sub_client, transaction.clone()).await {
+            match sub_client
+                .submit()
+                .ethereum()
+                .transact(transaction.clone())
+                .await
+            {
                 Ok(hash) => {
                     log::debug!(target: "subxt::nonce", "inner_nonce {}, insert cache for nonce: {}", target_nonce + 1, target_nonce);
                     *inner_nonce = target_nonce + 1;
@@ -165,11 +170,7 @@ pub async fn submit_extrinsic_by_evm(
                     call_cache.insert(
                         target_nonce,
                         (
-                            Box::new(
-                                crate::deepsafe::tx()
-                                    .ethereum()
-                                    .transact(transaction.clone()),
-                            ),
+                            Box::new(crate::node::tx().ethereum().transact(transaction.clone())),
                             true,
                             tx.encode(),
                             0,
@@ -178,42 +179,49 @@ pub async fn submit_extrinsic_by_evm(
                     Ok("0x".to_string() + &hex::encode(hash.0))
                 }
                 Err(e) => Err(e),
-            };
+            }
         }
     }
 }
 
 pub async fn import_src_hash(
-    sub_client: &DeepSafeSubClient,
+    sub_client: &NodeClient,
     cid: u32,
     hash: String,
     src_chain_id: u32,
     uid: String,
     need_watch_res: bool,
 ) -> Result<String, String> {
-    let hash = match hex::decode(&hash[2..]) {
+    let hash = match hex::decode(no_prefix(hash)) {
         Ok(hash) => hash,
         Err(e) => return Err(e.to_string()),
     };
-    let uid = match hex::decode(&uid[2..]) {
+    let uid = match hex::decode(no_prefix(uid)) {
         Ok(hash) => hash,
         Err(e) => return Err(e.to_string()),
     };
-    import_new_src_hash(
-        sub_client,
-        cid,
-        hash,
-        src_chain_id,
-        uid,
-        need_watch_res,
-        None,
-    )
-    .await
-    .map(|hash| "0x".to_string() + &hex::encode(hash.0))
+    sub_client
+        .submit()
+        .channel()
+        .import_new_src_hash(cid, hash, src_chain_id, uid, need_watch_res, None)
+        .await
+        .map(|hash| "0x".to_string() + &hex::encode(hash.0))
+}
+
+pub async fn query_tx_messages(
+    sub_client: &NodeClient,
+    input: (u32, Vec<u8>),
+) -> Option<TxMessage<u32>> {
+    sub_client
+        .query()
+        .channel()
+        .tx_messages(input.0, H256::from_slice(&input.1), None)
+        .await
+        .unwrap_or_default()
 }
 
 pub async fn sync_tx_status(
-    sub_client: &DeepSafeSubClient,
+    sub_client: &NodeClient,
     request: (u32, String),
     watch_res: bool,
 ) -> Result<String, String> {
@@ -221,13 +229,16 @@ pub async fn sync_tx_status(
         Ok(hash) => hash,
         Err(e) => return Err(e.to_string()),
     };
-    sync_status(sub_client, request.0, hash, watch_res, None)
+    sub_client
+        .submit()
+        .channel()
+        .sync_status(request.0, hash, watch_res, None)
         .await
         .map(|hash| "0x".to_string() + &hex::encode(hash.0))
 }
 
 pub async fn clear_target_btc_package(
-    sub_client: &DeepSafeSubClient,
+    sub_client: &NodeClient,
     request: (u32, String),
     watch_res: bool,
 ) -> Result<String, String> {
@@ -235,7 +246,23 @@ pub async fn clear_target_btc_package(
         Ok(package_key) => package_key,
         Err(e) => return Err(e.to_string()),
     };
-    clear_target_package(sub_client, request.0, package_key, watch_res, None)
+    sub_client
+        .submit()
+        .channel()
+        .clear_target_package(request.0, package_key, watch_res, None)
         .await
         .map(|hash| "0x".to_string() + &hex::encode(hash.0))
+}
+
+pub async fn collect_slave_signatures_adp(
+    sub_client: &NodeClient,
+    cid: u32,
+    hash: &[u8],
+) -> Vec<Vec<u8>> {
+    sub_client
+        .query()
+        .channel()
+        .collect_slave_signatures(cid, H256::from_slice(hash))
+        .await
+        .unwrap_or_default()
 }

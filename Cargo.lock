@@ -1690,71 +1690,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "dsn-chain-bridge"
-version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/dsn-common#58123b147342cc540b0a67bb2f8e0e40dd4c6011"
-dependencies = [
- "hex",
- "parity-scale-codec",
- "serde",
-]
-
-[[package]]
-name = "dsn-node-primitives"
-version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/dsn-common#58123b147342cc540b0a67bb2f8e0e40dd4c6011"
-dependencies = [
- "bls-signatures",
- "dsn-chain-bridge",
- "fp-account",
- "hex",
- "libsecp256k1 0.3.5",
- "serde",
- "sha2 0.9.9",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
-name = "dsn-pallets-api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dsn-chain-bridge",
- "dsn-node-primitives",
- "dsn-telemetry-client",
- "env_logger 0.9.3",
- "ethereum 0.14.0",
- "hex",
- "libsecp256k1 0.3.5",
- "log",
- "parity-scale-codec",
- "precompile-utils",
- "serde",
- "sp-core",
- "sp-runtime",
- "subxt",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "dsn-telemetry-client"
-version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/dsn-telemetry-client?branch=main#93bb896feb87910c6445d5e3a7305ef083aa051f"
-dependencies = [
- "env_logger 0.10.2",
- "lazy_static",
- "log",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "dyn-clonable"
 version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2227,7 +2162,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/frontier.git?branch=deep#1692b2232f1edfce8991265b99be4e5125c9533e"
+source = "git+https://github.com/safexn/frontier.git?branch=deep#5bbd2738724ed6da0ff7a056cc8548fef1021f97"
 dependencies = [
  "hex",
  "impl-serde 0.4.0",
@@ -2246,7 +2181,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/frontier.git?branch=deep#1692b2232f1edfce8991265b99be4e5125c9533e"
+source = "git+https://github.com/safexn/frontier.git?branch=deep#5bbd2738724ed6da0ff7a056cc8548fef1021f97"
 dependencies = [
  "evm",
  "frame-support",
@@ -2262,7 +2197,7 @@ dependencies = [
 [[package]]
 name = "frame-benchmarking"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "frame-support",
  "frame-support-procedural",
@@ -2310,7 +2245,7 @@ dependencies = [
 [[package]]
 name = "frame-support"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "aquamarine",
  "array-bytes",
@@ -2351,7 +2286,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "Inflector",
  "cfg-expr",
@@ -2370,7 +2305,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate 3.3.0",
@@ -2382,7 +2317,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "3.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2392,7 +2327,7 @@ dependencies = [
 [[package]]
 name = "frame-system"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "cfg-if",
  "docify",
@@ -4039,7 +3974,7 @@ dependencies = [
 [[package]]
 name = "occlum-ra"
 version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/occlum-ra?branch=deep#13c252d8697c16d4271109e03e4c3b2713fed0cb"
+source = "git+https://github.com/safexn/occlum-ra?branch=deep#ece10a68ae65d159b6695fd10e3a0f096c8dd817"
 dependencies = [
  "base64 0.9.3",
  "bit-vec",
@@ -4101,7 +4036,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/frontier.git?branch=deep#1692b2232f1edfce8991265b99be4e5125c9533e"
+source = "git+https://github.com/safexn/frontier.git?branch=deep#5bbd2738724ed6da0ff7a056cc8548fef1021f97"
 dependencies = [
  "environmental",
  "evm",
@@ -4352,7 +4287,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/frontier.git?branch=deep#1692b2232f1edfce8991265b99be4e5125c9533e"
+source = "git+https://github.com/safexn/frontier.git?branch=deep#5bbd2738724ed6da0ff7a056cc8548fef1021f97"
 dependencies = [
  "environmental",
  "evm",
@@ -4377,7 +4312,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/frontier.git?branch=deep#1692b2232f1edfce8991265b99be4e5125c9533e"
+source = "git+https://github.com/safexn/frontier.git?branch=deep#5bbd2738724ed6da0ff7a056cc8548fef1021f97"
 dependencies = [
  "case",
  "num_enum",
@@ -5529,7 +5464,7 @@ dependencies = [
 [[package]]
 name = "smoldot"
 version = "0.18.0"
-source = "git+https://github.com/DeepSecurityNetwork/smoldot?branch=deep#ccea733db96eb0821c9aa2dcbb1a9f0a5364cfca"
+source = "git+https://github.com/safexn/smoldot?branch=deep#6d47e014970809d175769d9952f16b346e66d823"
 dependencies = [
  "arrayvec 0.7.6",
  "async-lock",
@@ -5584,7 +5519,7 @@ dependencies = [
 [[package]]
 name = "smoldot-light"
 version = "0.16.2"
-source = "git+https://github.com/DeepSecurityNetwork/smoldot?branch=deep#ccea733db96eb0821c9aa2dcbb1a9f0a5364cfca"
+source = "git+https://github.com/safexn/smoldot?branch=deep#6d47e014970809d175769d9952f16b346e66d823"
 dependencies = [
  "async-channel",
  "async-lock",
@@ -5644,7 +5579,7 @@ dependencies = [
 [[package]]
 name = "sp-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "hash-db 0.16.0",
  "log",
@@ -5665,7 +5600,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "Inflector",
  "blake2",
@@ -5679,7 +5614,7 @@ dependencies = [
 [[package]]
 name = "sp-application-crypto"
 version = "23.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -5692,7 +5627,7 @@ dependencies = [
 [[package]]
 name = "sp-arithmetic"
 version = "16.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "integer-sqrt",
  "num-traits",
@@ -5724,7 +5659,7 @@ dependencies = [
 [[package]]
 name = "sp-core"
 version = "21.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "array-bytes",
  "bandersnatch_vrfs",
@@ -5770,7 +5705,7 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing"
 version = "9.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "blake2b_simd",
  "byteorder",
@@ -5783,7 +5718,7 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing-proc-macro"
 version = "9.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "quote",
  "sp-core-hashing",
@@ -5813,7 +5748,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "8.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5833,7 +5768,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.19.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -5854,7 +5789,7 @@ dependencies = [
 [[package]]
 name = "sp-genesis-builder"
 version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "serde_json",
  "sp-api",
@@ -5865,7 +5800,7 @@ dependencies = [
 [[package]]
 name = "sp-inherents"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
@@ -5879,7 +5814,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "23.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "bytes",
  "ed25519-dalek",
@@ -5903,7 +5838,7 @@ dependencies = [
 [[package]]
 name = "sp-keystore"
 version = "0.27.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "parity-scale-codec",
  "parking_lot",
@@ -5915,7 +5850,7 @@ dependencies = [
 [[package]]
 name = "sp-metadata-ir"
 version = "0.1.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "frame-metadata 16.0.0",
  "parity-scale-codec",
@@ -5926,7 +5861,7 @@ dependencies = [
 [[package]]
 name = "sp-panic-handler"
 version = "8.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "backtrace",
  "lazy_static",
@@ -5936,7 +5871,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime"
 version = "24.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "docify",
  "either",
@@ -5960,7 +5895,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "17.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -5997,7 +5932,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "11.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "Inflector",
  "expander",
@@ -6023,7 +5958,7 @@ dependencies = [
 [[package]]
 name = "sp-staking"
 version = "4.0.0-dev"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
@@ -6037,7 +5972,7 @@ dependencies = [
 [[package]]
 name = "sp-state-machine"
 version = "0.28.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "hash-db 0.16.0",
  "log",
@@ -6058,7 +5993,7 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "8.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 
 [[package]]
 name = "sp-std"
@@ -6068,7 +6003,7 @@ source = "git+https://github.com/paritytech/polkadot-sdk#6ce6110199a429ce449841f
 [[package]]
 name = "sp-storage"
 version = "13.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "impl-serde 0.4.0",
  "parity-scale-codec",
@@ -6093,7 +6028,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "10.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "parity-scale-codec",
  "sp-std 8.0.0",
@@ -6116,7 +6051,7 @@ dependencies = [
 [[package]]
 name = "sp-trie"
 version = "22.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "ahash 0.8.11",
  "hash-db 0.16.0",
@@ -6140,7 +6075,7 @@ dependencies = [
 [[package]]
 name = "sp-version"
 version = "22.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "impl-serde 0.4.0",
  "parity-scale-codec",
@@ -6157,7 +6092,7 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "8.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "parity-scale-codec",
  "proc-macro2",
@@ -6168,7 +6103,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "14.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -6192,7 +6127,7 @@ dependencies = [
 [[package]]
 name = "sp-weights"
 version = "20.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "bounded-collections",
  "parity-scale-codec",
@@ -6250,7 +6185,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 [[package]]
 name = "staging-xcm"
 version = "1.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "array-bytes",
  "bounded-collections",
@@ -6321,7 +6256,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 [[package]]
 name = "subxt"
 version = "0.37.0"
-source = "git+https://github.com/DeepSecurityNetwork/subxt.git?branch=deep-v0.37.0#2b8e4576de68490ef6ca829a6bd7b83a293389f4"
+source = "git+https://github.com/safexn/subxt.git?branch=deep-v0.37.0#d47562124fcb47027fca0d08dda23d81801a0399"
 dependencies = [
  "async-trait",
  "derive-where",
@@ -6357,7 +6292,7 @@ dependencies = [
 [[package]]
 name = "subxt-codegen"
 version = "0.37.0"
-source = "git+https://github.com/DeepSecurityNetwork/subxt.git?branch=deep-v0.37.0#2b8e4576de68490ef6ca829a6bd7b83a293389f4"
+source = "git+https://github.com/safexn/subxt.git?branch=deep-v0.37.0#d47562124fcb47027fca0d08dda23d81801a0399"
 dependencies = [
  "frame-metadata 16.0.0",
  "heck",
@@ -6377,7 +6312,7 @@ dependencies = [
 [[package]]
 name = "subxt-core"
 version = "0.37.0"
-source = "git+https://github.com/DeepSecurityNetwork/subxt.git?branch=deep-v0.37.0#2b8e4576de68490ef6ca829a6bd7b83a293389f4"
+source = "git+https://github.com/safexn/subxt.git?branch=deep-v0.37.0#d47562124fcb47027fca0d08dda23d81801a0399"
 dependencies = [
  "base58",
  "blake2",
@@ -6407,7 +6342,7 @@ dependencies = [
 [[package]]
 name = "subxt-lightclient"
 version = "0.37.0"
-source = "git+https://github.com/DeepSecurityNetwork/subxt.git?branch=deep-v0.37.0#2b8e4576de68490ef6ca829a6bd7b83a293389f4"
+source = "git+https://github.com/safexn/subxt.git?branch=deep-v0.37.0#d47562124fcb47027fca0d08dda23d81801a0399"
 dependencies = [
  "futures",
  "futures-util",
@@ -6423,7 +6358,7 @@ dependencies = [
 [[package]]
 name = "subxt-macro"
 version = "0.37.0"
-source = "git+https://github.com/DeepSecurityNetwork/subxt.git?branch=deep-v0.37.0#2b8e4576de68490ef6ca829a6bd7b83a293389f4"
+source = "git+https://github.com/safexn/subxt.git?branch=deep-v0.37.0#d47562124fcb47027fca0d08dda23d81801a0399"
 dependencies = [
  "darling 0.20.11",
  "parity-scale-codec",
@@ -6437,13 +6372,78 @@ dependencies = [
 [[package]]
 name = "subxt-metadata"
 version = "0.37.0"
-source = "git+https://github.com/DeepSecurityNetwork/subxt.git?branch=deep-v0.37.0#2b8e4576de68490ef6ca829a6bd7b83a293389f4"
+source = "git+https://github.com/safexn/subxt.git?branch=deep-v0.37.0#d47562124fcb47027fca0d08dda23d81801a0399"
 dependencies = [
  "frame-metadata 16.0.0",
  "hashbrown 0.14.5",
  "parity-scale-codec",
  "scale-info",
  "sp-core-hashing",
+]
+
+[[package]]
+name = "sxn-chain-bridge"
+version = "0.1.0"
+source = "git+https://github.com/safexn/sxn-common#9270b712907bc12dc0df21165144206178569776"
+dependencies = [
+ "hex",
+ "parity-scale-codec",
+ "serde",
+]
+
+[[package]]
+name = "sxn-node-primitives"
+version = "0.1.0"
+source = "git+https://github.com/safexn/sxn-common#9270b712907bc12dc0df21165144206178569776"
+dependencies = [
+ "bls-signatures",
+ "fp-account",
+ "hex",
+ "libsecp256k1 0.3.5",
+ "serde",
+ "sha2 0.9.9",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sxn-chain-bridge",
+]
+
+[[package]]
+name = "sxn-pallets-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger 0.9.3",
+ "ethereum 0.14.0",
+ "hex",
+ "libsecp256k1 0.3.5",
+ "log",
+ "parity-scale-codec",
+ "precompile-utils",
+ "serde",
+ "sp-core",
+ "sp-runtime",
+ "subxt",
+ "sxn-chain-bridge",
+ "sxn-node-primitives",
+ "sxn-telemetry-client",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "sxn-telemetry-client"
+version = "0.1.0"
+source = "git+https://github.com/safexn/sxn-telemetry-client?branch=main#e4a9126bd47923c85d5c5fc39d829d3f69e938c0"
+dependencies = [
+ "env_logger 0.10.2",
+ "lazy_static",
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -7776,7 +7776,7 @@ dependencies = [
 [[package]]
 name = "xcm-procedural"
 version = "1.0.0"
-source = "git+https://github.com/DeepSecurityNetwork/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
+source = "git+https://github.com/safexn/polkadot-sdk?branch=deep#acc55994ad5c8f032129b7a9f257642e6c3c5de8"
 dependencies = [
  "Inflector",
  "proc-macro2",

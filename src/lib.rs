@@ -8,8 +8,8 @@ pub mod types;
 pub mod watcher_rpc;
 
 pub use crate::client::NodeConfig;
-pub use dsn_node_primitives;
-use dsn_node_primitives::CustomError;
+pub use sxn_node_primitives;
+use sxn_node_primitives::CustomError;
 pub use subxt::constants::Address;
 pub use subxt::events::StaticEvent;
 pub use subxt::tx::{EcdsaSigner, SecretKey};

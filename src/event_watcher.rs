@@ -85,9 +85,9 @@ impl EventWatcher {
         }
         #[cfg(feature = "telemetry")]
         {
-            def_telemetry_client::set_best_block_number(self.latest);
-            def_telemetry_client::set_finalized_block_number(self.finalized);
-            def_telemetry_client::set_handled_block_number(self.finalized);
+            dsn_telemetry_client::set_best_block_number(self.latest);
+            dsn_telemetry_client::set_finalized_block_number(self.finalized);
+            dsn_telemetry_client::set_handled_block_number(self.finalized);
         }
     }
 
@@ -152,8 +152,8 @@ impl EventWatcher {
 
                 #[cfg(feature = "telemetry")]
                 {
-                    def_telemetry_client::set_best_block_number(self.latest);
-                    def_telemetry_client::set_finalized_block_number(self.finalized);
+                    dsn_telemetry_client::set_best_block_number(self.latest);
+                    dsn_telemetry_client::set_finalized_block_number(self.finalized);
                 }
 
                 tokio::time::sleep(std::time::Duration::from_secs(3)).await;
